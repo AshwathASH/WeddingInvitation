@@ -240,6 +240,71 @@
             transform: translateX(-50%) scale(1.02);
         }
 
+        #scrollToggle {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            width: 34px;
+            height: 34px;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: 50% 44% 50% 44%;
+            background:
+                radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.78), transparent 34%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(184, 134, 11, 0.28));
+            color: #8d5700;
+            box-shadow:
+                0 12px 28px rgba(78, 38, 14, 0.22),
+                inset 0 1px 1px rgba(255, 255, 255, 0.8),
+                inset 0 -8px 18px rgba(184, 134, 11, 0.12);
+            backdrop-filter: blur(14px) saturate(1.3);
+            -webkit-backdrop-filter: blur(14px) saturate(1.3);
+            cursor: pointer;
+            transform: translateX(-50%);
+            transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+        }
+
+        #scrollToggle.visible {
+            display: flex;
+        }
+
+        #scrollToggle:hover {
+            transform: translateX(-50%) translateY(-3px) rotate(3deg);
+        }
+
+        #scrollToggle::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            transform: translateY(-3px) rotate(45deg);
+            transition: transform 0.2s ease;
+            z-index: 2;
+        }
+
+        #scrollToggle::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            z-index: -1;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(255, 248, 226, 0.72) 0 14%, transparent 15%),
+                radial-gradient(circle at 100% 50%, rgba(255, 235, 184, 0.68) 0 14%, transparent 15%),
+                radial-gradient(circle at 50% 100%, rgba(255, 248, 226, 0.72) 0 14%, transparent 15%),
+                radial-gradient(circle at 0% 50%, rgba(255, 235, 184, 0.68) 0 14%, transparent 15%);
+            filter: drop-shadow(0 8px 12px rgba(125, 82, 17, 0.18));
+            pointer-events: none;
+        }
+
+        #scrollToggle.up::before {
+            transform: translateY(3px) rotate(225deg);
+        }
+
         /* Main Content - initially hidden */
         .main-content {
             opacity: 0;
@@ -528,6 +593,12 @@
                 padding-top: 18px;
             }
             #hero-text { font-size: 24px; white-space: normal; width: 80%; text-align: center; }
+            #scrollToggle {
+                left: 50%;
+                bottom: 16px;
+                width: 32px;
+                height: 32px;
+            }
         }
     </style>
 </head>
@@ -557,6 +628,8 @@
     <img id="curtain-img" src="curtain/ezgif-frame-001.png" alt="Curtain" />
     <button id="openBtn">Open Invitation</button>
 </div>
+
+<button id="scrollToggle" type="button" aria-label="Scroll to invitation"></button>
 
 <!-- MAIN CONTENT -->
 <div class="main-content" id="mainContent">
@@ -772,6 +845,7 @@ function loadImage(url, trackProgress = true) {
 // ==================== CURTAIN ANIMATION ====================
 const btn = document.getElementById("openBtn");
 const curtainImg = document.getElementById("curtain-img");
+const scrollToggle = document.getElementById("scrollToggle");
 
 let currentFrame = 1;
 const totalFrames = 211;
@@ -794,6 +868,23 @@ function preloadCriticalFrames() {
     });
 }
 preloadCriticalFrames();
+
+function updateScrollToggleIcon() {
+    const isPastHero = window.scrollY >= window.innerHeight * 0.55;
+    scrollToggle.classList.toggle("up", isPastHero);
+    scrollToggle.setAttribute("aria-label", isPastHero ? "Scroll to curtain" : "Scroll to invitation");
+}
+
+scrollToggle.addEventListener("click", () => {
+    const isPastHero = window.scrollY >= window.innerHeight * 0.55;
+
+    window.scrollTo({
+        top: isPastHero ? 0 : window.innerHeight,
+        behavior: "smooth"
+    });
+});
+
+window.addEventListener("scroll", updateScrollToggleIcon, { passive: true });
 
 btn.addEventListener("click", () => {
     btn.style.display = "none";
@@ -853,6 +944,8 @@ btn.addEventListener("click", () => {
             // hero.style.height = "100vh";
             // hero.style.zIndex = "1";
             document.body.style.overflow = "auto";
+            scrollToggle.classList.add("visible");
+            updateScrollToggleIcon();
 
             // ✅ JUST REDIRECT (SCROLL DOWN)
 setTimeout(() => {
@@ -860,6 +953,7 @@ setTimeout(() => {
         top: window.innerHeight,
         behavior: "smooth"
     });
+    updateScrollToggleIcon();
 }, 600);
 
             
